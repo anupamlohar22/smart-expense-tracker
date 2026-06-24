@@ -3,6 +3,11 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_user
 from app.database.dependencies import get_db
 from app.models.user import User
+from app.models.expense import Expense
+from app.schemas.expense import (
+    ExpenseCreate,
+    ExpenseUpdate
+)
 
 from app.schemas.user import UserCreate, UserLogin
 
@@ -93,4 +98,125 @@ def get_me(
 ):
     return {
         "email": current_user
+    }
+
+@router.post("/expenses")
+def create_expense(
+    expense: ExpenseCreate,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+
+    user = (
+        db.query(User)
+        .filter(User.email == current_user)
+        .first()
+    )
+
+    new_expense = Expense(
+        title=expense.title,
+        amount=expense.amount,
+        category=expense.category,
+        user_id=user.id
+    )
+
+    db.add(new_expense)
+    db.commit()
+    db.refresh(new_expense)
+
+    return {
+        "message": "Expense created successfully"
+    }
+
+@router.get("/expenses")
+def get_expenses(
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+
+    user = (
+        db.query(User)
+        .filter(User.email == current_user)
+        .first()
+    )
+
+    expenses = (
+        db.query(Expense)
+        .filter(Expense.user_id == user.id)
+        .all()
+    )
+
+    return expenses
+
+@router.delete("/expenses/{expense_id}")
+def delete_expense(
+    expense_id: int,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+
+    user = (
+        db.query(User)
+        .filter(User.email == current_user)
+        .first()
+    )
+
+    expense = (
+        db.query(Expense)
+        .filter(
+            Expense.id == expense_id,
+            Expense.user_id == user.id
+        )
+        .first()
+    )
+
+    if not expense:
+        return {
+            "message": "Expense not found"
+        }
+
+    db.delete(expense)
+    db.commit()
+
+    return {
+        "message": "Expense deleted successfully"
+    }
+
+@router.put("/expenses/{expense_id}")
+def update_expense(
+    expense_id: int,
+    expense_data: ExpenseUpdate,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+
+    user = (
+        db.query(User)
+        .filter(User.email == current_user)
+        .first()
+    )
+
+    expense = (
+        db.query(Expense)
+        .filter(
+            Expense.id == expense_id,
+            Expense.user_id == user.id
+        )
+        .first()
+    )
+
+    if not expense:
+        return {
+            "message": "Expense not found"
+        }
+
+    expense.title = expense_data.title
+    expense.amount = expense_data.amount
+    expense.category = expense_data.category
+
+    db.commit()
+    db.refresh(expense)
+
+    return {
+        "message": "Expense updated successfully"
     }
