@@ -15,8 +15,11 @@ function Login({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    setLoading(true);
+
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/login`,
@@ -37,9 +40,11 @@ function Login({
 
       toast.error(
         error?.response?.data?.detail ||
-        error?.response?.data?.message ||
-        "Invalid email or password"
+          error?.response?.data?.message ||
+          "Invalid email or password"
       );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,9 +94,10 @@ function Login({
 
           <button
             onClick={handleLogin}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-3 rounded-xl font-semibold transition"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </div>
 
