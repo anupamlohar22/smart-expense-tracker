@@ -10,9 +10,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
+    allow_origins = [
     "http://localhost:5173",
     "https://smart-expense-tracker-three-murex.vercel.app",
+    "https://smart-expense-tracker-mos4lfdva-anupam-lohar-s-projects.vercel.app",
 ],
     allow_credentials=True,
     allow_methods=["*"],
