@@ -71,19 +71,19 @@ def login_user(
     )
 
     if not db_user:
-    raise HTTPException(
-        status_code=401,
-        detail="Invalid email or password"
-    )
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
 
-if not verify_password(
-    user.password,
-    db_user.password_hash
-):
-    raise HTTPException(
-        status_code=401,
-        detail="Invalid email or password"
-    )
+    if not verify_password(
+        user.password,
+        db_user.password_hash
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
 
     access_token = create_access_token(
         data={
