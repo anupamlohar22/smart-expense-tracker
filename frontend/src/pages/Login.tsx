@@ -11,8 +11,9 @@ const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
   const handleLogin = async () => {
     try {
+      console.log(import.meta.env.VITE_API_URL);
       const response = await axios.post(
-        "`${import.meta.env.VITE_API_URL}/login",
+        `${import.meta.env.VITE_API_URL}/login`,
         {
           email,
           password,

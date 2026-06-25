@@ -33,7 +33,7 @@ function Dashboard() {
       const token = localStorage.getItem("token");
 
       const response = await axios.get(
-        "`${import.meta.env.VITE_API_URL}/expenses`",
+        `${import.meta.env.VITE_API_URL}/expenses`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -85,7 +85,7 @@ function Dashboard() {
 toast.success("Expense updated!");
       } else {
         await axios.post(
-          "`${import.meta.env.VITE_API_URL}/expenses`",
+          `${import.meta.env.VITE_API_URL}/expenses`,
           {
             title,
             amount: Number(amount),
