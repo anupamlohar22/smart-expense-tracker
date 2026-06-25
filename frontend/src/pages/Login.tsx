@@ -33,11 +33,14 @@ function Login({
 
       setLoggedIn(true);
     } catch (error: any) {
-      toast.error(
-  error.response?.data?.detail ||
-  "Invalid email or password"
-);
-    }
+  console.log(error.response);
+
+  toast.error(
+    error?.response?.data?.detail ||
+    error?.response?.data?.message ||
+    "Invalid email or password"
+  );
+}
   };
 
   return (
