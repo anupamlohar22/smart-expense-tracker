@@ -23,15 +23,40 @@ function Register({
   const [password, setPassword] = useState("");
 
   const handleRegister = async () => {
-    try {
-      await axios.post(
-  `${import.meta.env.VITE_API_URL}/register`,
-  {
-    name,
-    email,
-    password,
+  try {
+    await axios.post(
+      `${import.meta.env.VITE_API_URL}/register`,
+      {
+        name,
+        email,
+        password,
+      }
+    );
+
+    const loginResponse = await axios.post(
+      `${import.meta.env.VITE_API_URL}/login`,
+      {
+        email,
+        password,
+      }
+    );
+
+    localStorage.setItem(
+      "token",
+      loginResponse.data.access_token
+    );
+
+    toast.success("Account created successfully!");
+
+    setLoggedIn(true);
+
+  } catch (error: any) {
+    toast.error(
+      error.response?.data?.detail ||
+      "Registration failed"
+    );
   }
-);
+};
 
 const loginResponse = await axios.post(
   `${import.meta.env.VITE_API_URL}/login`,
