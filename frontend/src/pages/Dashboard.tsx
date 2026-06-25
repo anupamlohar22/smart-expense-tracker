@@ -33,7 +33,7 @@ function Dashboard() {
       const token = localStorage.getItem("token");
 
       const response = await axios.get(
-        "http://127.0.0.1:8000/expenses",
+        "`${import.meta.env.VITE_API_URL}/expenses`",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -68,7 +68,7 @@ function Dashboard() {
 
       if (editingExpense) {
         await axios.put(
-          `http://127.0.0.1:8000/expenses/${editingExpense.id}`,
+          `${import.meta.env.VITE_API_URL}/expenses/${editingExpense.id}`,
           {
             title,
             amount: Number(amount),
@@ -85,7 +85,7 @@ function Dashboard() {
 toast.success("Expense updated!");
       } else {
         await axios.post(
-          "http://127.0.0.1:8000/expenses",
+          "`${import.meta.env.VITE_API_URL}/expenses`",
           {
             title,
             amount: Number(amount),
@@ -121,7 +121,7 @@ toast.success("Expense updated!");
       const token = localStorage.getItem("token");
 
       await axios.delete(
-        `http://127.0.0.1:8000/expenses/${expenseId}`,
+        `${import.meta.env.VITE_API_URL}/expenses/${expenseId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
