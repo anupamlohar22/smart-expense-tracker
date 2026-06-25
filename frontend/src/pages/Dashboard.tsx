@@ -8,6 +8,7 @@ function Dashboard() {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
+  const [editingExpense, setEditingExpense] = useState<any>(null);
 
   useEffect(() => {
     fetchExpenses();
@@ -33,9 +34,26 @@ function Dashboard() {
   };
 
   const addExpense = async () => {
-    try {
-      const token = localStorage.getItem("token");
+  try {
+    const token = localStorage.getItem("token");
 
+    if (editingExpense) {
+      await axios.put(
+        `http://127.0.0.1:8000/expenses/${editingExpense.id}`,
+        {
+          title,
+          amount: Number(amount),
+          category,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setEditingExpense(null);
+    } else {
       await axios.post(
         "http://127.0.0.1:8000/expenses",
         {
@@ -49,16 +67,17 @@ function Dashboard() {
           },
         }
       );
-
-      setTitle("");
-      setAmount("");
-      setCategory("");
-
-      fetchExpenses();
-    } catch (error) {
-      console.error(error);
     }
-  };
+
+    setTitle("");
+    setAmount("");
+    setCategory("");
+
+    fetchExpenses();
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const deleteExpense = async (expenseId: number) => {
     try {
@@ -79,6 +98,14 @@ function Dashboard() {
     }
   };
 
+  const editExpense = (expense: any) => {
+    setEditingExpense(expense);
+
+    setTitle(expense.title);
+    setAmount(expense.amount.toString());
+    setCategory(expense.category);
+  };
+
   const totalExpenses = expenses.reduce(
     (sum, expense) => sum + expense.amount,
     0
@@ -92,7 +119,6 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-100 p-10">
       <div className="max-w-4xl mx-auto">
-
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold">
             Expense Dashboard
@@ -117,14 +143,15 @@ function Dashboard() {
         </div>
 
         <ExpenseForm
-  title={title}
-  amount={amount}
-  category={category}
-  setTitle={setTitle}
-  setAmount={setAmount}
-  setCategory={setCategory}
-  onAddExpense={addExpense}
-/>
+          title={title}
+          amount={amount}
+          category={category}
+          setTitle={setTitle}
+          setAmount={setAmount}
+          setCategory={setCategory}
+          onAddExpense={addExpense}
+          editingExpense={editingExpense}
+        />
 
         <h2 className="text-2xl font-bold mb-4">
           My Expenses
@@ -135,6 +162,7 @@ function Dashboard() {
             key={expense.id}
             expense={expense}
             onDelete={deleteExpense}
+            onEdit={editExpense}
           />
         ))}
       </div>

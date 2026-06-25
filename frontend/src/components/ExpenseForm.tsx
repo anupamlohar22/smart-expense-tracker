@@ -2,10 +2,13 @@ type ExpenseFormProps = {
   title: string;
   amount: string;
   category: string;
+
   setTitle: React.Dispatch<React.SetStateAction<string>>;
   setAmount: React.Dispatch<React.SetStateAction<string>>;
   setCategory: React.Dispatch<React.SetStateAction<string>>;
+
   onAddExpense: () => void;
+  editingExpense: any;
 };
 
 function ExpenseForm({
@@ -16,6 +19,7 @@ function ExpenseForm({
   setAmount,
   setCategory,
   onAddExpense,
+  editingExpense,
 }: ExpenseFormProps) {
   return (
     <div className="bg-white rounded-lg shadow p-5 mb-6">
@@ -49,10 +53,10 @@ function ExpenseForm({
         />
 
         <button
-          onClick={onAddExpense}
-          className="bg-blue-600 text-white px-5 rounded"
+            onClick={onAddExpense}
+            className="bg-blue-600 text-white px-5 rounded"
         >
-          Add
+            {editingExpense ? "Update" : "Add"}
         </button>
       </div>
     </div>
