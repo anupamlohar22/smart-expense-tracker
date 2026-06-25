@@ -1,3 +1,5 @@
+import React from "react";
+
 type ExpenseFormProps = {
   title: string;
   amount: string;
@@ -9,6 +11,7 @@ type ExpenseFormProps = {
 
   onAddExpense: () => void;
   editingExpense: any;
+  darkMode: boolean;
 };
 
 function ExpenseForm({
@@ -20,16 +23,29 @@ function ExpenseForm({
   setCategory,
   onAddExpense,
   editingExpense,
+  darkMode,
 }: ExpenseFormProps) {
   return (
-    <div className="bg-white rounded-lg shadow p-5 mb-6">
-      <h2 className="text-2xl font-semibold mb-4">
-        Add Expense
+    <div
+      className={`rounded-2xl shadow-lg p-6 mb-6 transition ${
+        darkMode
+          ? "bg-slate-800 text-white"
+          : "bg-white"
+      }`}
+    >
+      <h2 className="text-2xl font-bold mb-6">
+        {editingExpense
+          ? "Update Expense"
+          : "Add New Expense"}
       </h2>
 
-      <div className="flex gap-3">
+      <div className="grid md:grid-cols-4 gap-4">
         <input
-          className="border rounded p-2 flex-1"
+          className={`border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            darkMode
+              ? "bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+              : "bg-white text-black border-slate-300"
+          }`}
           type="text"
           placeholder="Title"
           value={title}
@@ -37,7 +53,11 @@ function ExpenseForm({
         />
 
         <input
-          className="border rounded p-2"
+          className={`border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            darkMode
+              ? "bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+              : "bg-white text-black border-slate-300"
+          }`}
           type="number"
           placeholder="Amount"
           value={amount}
@@ -45,7 +65,11 @@ function ExpenseForm({
         />
 
         <input
-          className="border rounded p-2"
+          className={`border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            darkMode
+              ? "bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+              : "bg-white text-black border-slate-300"
+          }`}
           type="text"
           placeholder="Category"
           value={category}
@@ -53,10 +77,10 @@ function ExpenseForm({
         />
 
         <button
-            onClick={onAddExpense}
-            className="bg-blue-600 text-white px-5 rounded"
+          onClick={onAddExpense}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl transition font-semibold"
         >
-            {editingExpense ? "Update" : "Add"}
+          {editingExpense ? "Update" : "Add"}
         </button>
       </div>
     </div>

@@ -1,7 +1,13 @@
-import ExpenseForm from "../components/ExpenseForm";
-import ExpenseCard from "../components/ExpenseCard";
+import { FaMoon, FaSun } from "react-icons/fa";
+import toast from "react-hot-toast";
+import { FaWallet, FaSignOutAlt } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import axios from "axios";
+
+import ExpenseForm from "../components/ExpenseForm";
+import ExpenseCard from "../components/ExpenseCard";
+import ExpensePieChart from "../components/ExpensePieChart";
+import MonthlyExpenseChart from "../components/MonthlyExpenseChart";
 
 function Dashboard() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -9,6 +15,14 @@ function Dashboard() {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [editingExpense, setEditingExpense] = useState<any>(null);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] =
+    useState("All");
+  
+  const [darkMode, setDarkMode] = useState(
+  localStorage.getItem("theme") === "dark"
+);
 
   useEffect(() => {
     fetchExpenses();
@@ -34,50 +48,73 @@ function Dashboard() {
   };
 
   const addExpense = async () => {
-  try {
-    const token = localStorage.getItem("token");
+    try {
+      if (!title.trim()) {
+        toast.error("Please enter a title.");;
+        return;
+      }
 
-    if (editingExpense) {
-      await axios.put(
-        `http://127.0.0.1:8000/expenses/${editingExpense.id}`,
-        {
-          title,
-          amount: Number(amount),
-          category,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      if (!category.trim()) {
+        toast.error("Please enter a category.");;
+        return;
+      }
 
-      setEditingExpense(null);
-    } else {
-      await axios.post(
-        "http://127.0.0.1:8000/expenses",
-        {
-          title,
-          amount: Number(amount),
-          category,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+      if (Number(amount) <= 0) {
+        toast.error("Amount must be greater than 0.");;
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+
+      if (editingExpense) {
+        await axios.put(
+          `http://127.0.0.1:8000/expenses/${editingExpense.id}`,
+          {
+            title,
+            amount: Number(amount),
+            category,
           },
-        }
-      );
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setEditingExpense(null);
+toast.success("Expense updated!");
+      } else {
+        await axios.post(
+          "http://127.0.0.1:8000/expenses",
+          {
+            title,
+            amount: Number(amount),
+            category,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      toast.success("Expense added!");
+      }
+
+      setTitle("");
+      setAmount("");
+      setCategory("");
+
+      fetchExpenses();
+    } catch (error: any) {
+      console.error(error);
+
+      if (error.response?.status === 401) {
+        toast.error("Session expired. Please login again.");
+        localStorage.removeItem("token");
+        window.location.reload();
+      }
     }
-
-    setTitle("");
-    setAmount("");
-    setCategory("");
-
-    fetchExpenses();
-  } catch (error) {
-    console.error(error);
-  }
-};
+  };
 
   const deleteExpense = async (expenseId: number) => {
     try {
@@ -91,7 +128,7 @@ function Dashboard() {
           },
         }
       );
-
+toast.success("Expense deleted!");
       fetchExpenses();
     } catch (error) {
       console.error(error);
@@ -111,35 +148,120 @@ function Dashboard() {
     0
   );
 
+  const totalTransactions = expenses.length;
+
+  const filteredExpenses = expenses.filter(
+    (expense) => {
+      const matchesSearch = expense.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+      const matchesCategory =
+        selectedCategory === "All" ||
+        expense.category === selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    }
+  );
+
+  const categories = [
+    "All",
+    ...new Set(
+      expenses.map((expense) => expense.category)
+    ),
+  ];
+
   const logout = () => {
     localStorage.removeItem("token");
     window.location.reload();
   };
 
-  return (
-    <div className="min-h-screen bg-slate-100 p-10">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold">
-            Expense Dashboard
-          </h1>
+  const toggleDarkMode = () => {
+  const newMode = !darkMode;
 
-          <button
-            onClick={logout}
-            className="bg-red-500 text-white px-4 py-2 rounded"
-          >
-            Logout
-          </button>
+  setDarkMode(newMode);
+
+  localStorage.setItem(
+    "theme",
+    newMode ? "dark" : "light"
+  );
+};
+
+  return (
+    <div
+  className={`min-h-screen p-10 transition-colors duration-300 ${
+    darkMode
+      ? "bg-slate-900 text-white"
+      : "bg-slate-100 text-black"
+  }`}
+>
+      <div className="max-w-5xl mx-auto">
+
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-4">
+            <div className="bg-blue-600 p-3 rounded-xl text-white">
+              <FaWallet size={28} />
+            </div>
+
+            <div>
+              <h1
+  className={`text-4xl font-bold ${
+    darkMode ? "text-white" : "text-slate-800"
+  }`}
+>
+  Expense Tracker
+</h1>
+
+<p
+  className={`${
+    darkMode ? "text-slate-300" : "text-slate-500"
+  }`}
+>
+  Manage your daily expenses
+</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+  <button
+    onClick={toggleDarkMode}
+    className="bg-slate-700 hover:bg-slate-800 text-white px-4 py-3 rounded-lg transition"
+  >
+    {darkMode ? <FaSun /> : <FaMoon />}
+  </button>
+
+  <button
+    onClick={logout}
+    className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-lg transition"
+  >
+    <FaSignOutAlt />
+    Logout
+  </button>
+</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-5 mb-6">
-          <h2 className="text-2xl font-semibold">
-            Total Expenses
-          </h2>
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
 
-          <p className="text-3xl font-bold text-green-600 mt-2">
-            ₹ {totalExpenses}
-          </p>
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-xl font-medium opacity-90">
+              Total Expenses
+            </h2>
+
+            <p className="text-5xl font-bold mt-3">
+              ₹ {totalExpenses}
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-xl font-medium opacity-90">
+              Total Transactions
+            </h2>
+
+            <p className="text-5xl font-bold mt-3">
+              {totalTransactions}
+            </p>
+          </div>
+
         </div>
 
         <ExpenseForm
@@ -151,18 +273,64 @@ function Dashboard() {
           setCategory={setCategory}
           onAddExpense={addExpense}
           editingExpense={editingExpense}
+          darkMode={darkMode}
         />
+
+       <ExpensePieChart
+          expenses={expenses}
+          darkMode={darkMode}
+        />
+
+        <MonthlyExpenseChart
+          expenses={expenses}
+          darkMode={darkMode}
+        />
+
+        <div className="flex gap-4 mb-6">
+          <input
+            type="text"
+            placeholder="Search expenses..."
+            value={searchTerm}
+            onChange={(e) =>
+              setSearchTerm(e.target.value)
+            }
+            className={`flex-1 rounded-xl px-4 py-3 border ${
+  darkMode
+    ? "bg-slate-800 text-white border-slate-700 placeholder-slate-400"
+    : "bg-white text-black border-slate-300"
+}`}
+          />
+
+          <select
+            value={selectedCategory}
+            onChange={(e) =>
+              setSelectedCategory(e.target.value)
+            }
+            className={`rounded-xl px-4 py-3 border ${
+  darkMode
+    ? "bg-slate-800 text-white border-slate-700"
+    : "bg-white text-black border-slate-300"
+}`}
+          >
+            {categories.map((category) => (
+              <option key={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <h2 className="text-2xl font-bold mb-4">
           My Expenses
         </h2>
 
-        {expenses.map((expense) => (
+        {filteredExpenses.map((expense) => (
           <ExpenseCard
             key={expense.id}
             expense={expense}
             onDelete={deleteExpense}
             onEdit={editExpense}
+            darkMode={darkMode}
           />
         ))}
       </div>
