@@ -1,7 +1,7 @@
 import { FaMoon, FaSun } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { FaWallet, FaSignOutAlt } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 
 import ExpenseForm from "../components/ExpenseForm";
@@ -19,7 +19,7 @@ function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState("All");
-  
+  const formRef = useRef<HTMLDivElement>(null);
   const [darkMode, setDarkMode] = useState(
   localStorage.getItem("theme") === "dark"
 );
@@ -136,12 +136,17 @@ toast.success("Expense deleted!");
   };
 
   const editExpense = (expense: any) => {
-    setEditingExpense(expense);
+  setEditingExpense(expense);
 
-    setTitle(expense.title);
-    setAmount(expense.amount.toString());
-    setCategory(expense.category);
-  };
+  setTitle(expense.title);
+  setAmount(expense.amount.toString());
+  setCategory(expense.category);
+
+  formRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+};
 
   const totalExpenses = expenses.reduce(
     (sum, expense) => sum + expense.amount,
@@ -264,17 +269,19 @@ toast.success("Expense deleted!");
 
         </div>
 
-        <ExpenseForm
-          title={title}
-          amount={amount}
-          category={category}
-          setTitle={setTitle}
-          setAmount={setAmount}
-          setCategory={setCategory}
-          onAddExpense={addExpense}
-          editingExpense={editingExpense}
-          darkMode={darkMode}
-        />
+        <div ref={formRef}>
+  <ExpenseForm
+    title={title}
+    amount={amount}
+    category={category}
+    setTitle={setTitle}
+    setAmount={setAmount}
+    setCategory={setCategory}
+    onAddExpense={addExpense}
+    editingExpense={editingExpense}
+    darkMode={darkMode}
+  />
+</div>
 
        <ExpensePieChart
           expenses={expenses}
