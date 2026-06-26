@@ -177,9 +177,17 @@ toast.success("Expense deleted!");
   ];
 
   const logout = () => {
-    localStorage.removeItem("token");
-    window.location.reload();
-  };
+  const confirmed = window.confirm(
+    "Are you sure you want to logout?"
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  localStorage.removeItem("token");
+  window.location.reload();
+};
 
   const toggleDarkMode = () => {
   const newMode = !darkMode;

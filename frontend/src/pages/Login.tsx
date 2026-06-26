@@ -18,6 +18,21 @@ function Login({
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+      if (!email || !password) {
+    toast.error("Please fill all fields");
+    return;
+  }  
+
+    if (!email.includes("@")) {
+    toast.error("Please enter a valid email");
+    return;
+  }
+
+    if (password.length < 6) {
+    toast.error("Password must be at least 6 characters");
+    return;
+  }
+
     setLoading(true);
 
     try {
