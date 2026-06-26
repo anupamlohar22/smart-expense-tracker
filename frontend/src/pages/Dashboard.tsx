@@ -1,5 +1,4 @@
 import { FaFileCsv } from "react-icons/fa";
-
 import { jwtDecode } from "jwt-decode";
 import { useMemo } from "react";
 
@@ -25,10 +24,22 @@ function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState("All");
+ const [monthlyBudget, setMonthlyBudget] = useState(() => {
+  const savedBudget = localStorage.getItem("monthlyBudget");
+
+  return savedBudget ? Number(savedBudget) : 10000;
+});
   const formRef = useRef<HTMLDivElement>(null);
   const [darkMode, setDarkMode] = useState(
   localStorage.getItem("theme") === "dark"
 );
+
+  useEffect(() => {
+  localStorage.setItem(
+    "monthlyBudget",
+    monthlyBudget.toString()
+  );
+}, [monthlyBudget]);
   type TokenData = {
   sub: string;
   name?: string;
@@ -175,6 +186,8 @@ toast.success("Expense deleted!");
     (sum, expense) => sum + expense.amount,
     0
   );
+  const remainingBudget = monthlyBudget - totalExpenses;
+  const isOverBudget = remainingBudget < 0;
 
   const totalTransactions = expenses.length;
 
@@ -326,6 +339,31 @@ const exportToCSV = () => {
 </div>
         </div>
 
+        <div
+  className={`mb-6 p-4 rounded-2xl shadow ${
+    darkMode
+      ? "bg-slate-800 text-white"
+      : "bg-white text-slate-800"
+  }`}
+>
+  <label className="block mb-2 font-semibold">
+    Monthly Budget (₹)
+  </label>
+
+  <input
+    type="number"
+    value={monthlyBudget}
+    onChange={(e) =>
+      setMonthlyBudget(Number(e.target.value))
+    }
+    className={`w-full rounded-xl px-4 py-3 border ${
+      darkMode
+        ? "bg-slate-700 border-slate-600 text-white"
+        : "bg-white border-slate-300"
+    }`}
+  />
+</div>
+
         <div className="grid md:grid-cols-2 gap-6 mb-6">
 
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl shadow-lg p-6">
@@ -347,7 +385,32 @@ const exportToCSV = () => {
               {totalTransactions}
             </p>
           </div>
+          
+<div className="grid md:grid-cols-2 gap-6 mb-6">
 
+  <div
+    className={`rounded-2xl shadow-lg p-6 text-white ${
+      isOverBudget
+        ? "bg-gradient-to-r from-red-600 to-red-800"
+        : "bg-gradient-to-r from-green-600 to-green-800"
+    }`}
+  >
+    <h2 className="text-xl font-medium opacity-90">
+      Remaining Budget
+    </h2>
+
+    <p className="text-5xl font-bold mt-3">
+      ₹ {Math.abs(remainingBudget)}
+    </p>
+
+    <p className="mt-2">
+      {isOverBudget
+        ? "⚠️ You are over budget!"
+        : "✅ Within budget"}
+    </p>
+  </div>
+
+</div>
         </div>
 
         <div ref={formRef}>
