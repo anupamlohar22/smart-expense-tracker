@@ -86,10 +86,11 @@ def login_user(
         )
 
     access_token = create_access_token(
-        data={
-            "sub": db_user.email
-        }
-    )
+    data={
+        "sub": db_user.email,
+        "name": db_user.name
+    }
+)
 
     return {
         "access_token": access_token,

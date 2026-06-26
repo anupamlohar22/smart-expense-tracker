@@ -1,3 +1,7 @@
+import { jwtDecode } from "jwt-decode";
+import { useMemo } from "react";
+
+
 import { FaMoon, FaSun } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { FaWallet, FaSignOutAlt } from "react-icons/fa";
@@ -10,6 +14,7 @@ import ExpensePieChart from "../components/ExpensePieChart";
 import MonthlyExpenseChart from "../components/MonthlyExpenseChart";
 
 function Dashboard() {
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
@@ -23,7 +28,23 @@ function Dashboard() {
   const [darkMode, setDarkMode] = useState(
   localStorage.getItem("theme") === "dark"
 );
+type TokenData = {
+  sub: string;
+  name: string;
+};
 
+const userName = useMemo(() => {
+  const token = localStorage.getItem("token");
+
+  if (!token) return "User";
+
+  try {
+    const decoded = jwtDecode<TokenData>(token);
+    return decoded.name;
+  } catch {
+    return "User";
+  }
+}, []);
   useEffect(() => {
     fetchExpenses();
   }, []);
@@ -177,15 +198,8 @@ toast.success("Expense deleted!");
   ];
 
   const logout = () => {
-  const confirmed = window.confirm(
-    "Are you sure you want to logout?"
-  );
-
-  if (!confirmed) {
-    return;
-  }
-
   localStorage.removeItem("token");
+  setShowLogoutModal(false);
   window.location.reload();
 };
 
@@ -217,13 +231,22 @@ toast.success("Expense deleted!");
             </div>
 
             <div>
-              <h1
-  className={`text-4xl font-bold ${
-    darkMode ? "text-white" : "text-slate-800"
-  }`}
->
-  Expense Tracker
-</h1>
+<div>
+  <h1
+    className={`text-4xl font-bold ${
+      darkMode ? "text-white" : "text-slate-800"
+    }`}
+  >
+    Welcome back, {userName}!
+  </h1>
+
+  <p
+    className={`mt-2 ${
+      darkMode ? "text-slate-300" : "text-slate-600"
+    }`}
+  >
+  </p>
+</div>
 
 <p
   className={`${
@@ -244,12 +267,12 @@ toast.success("Expense deleted!");
   </button>
 
   <button
-    onClick={logout}
-    className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-lg transition"
-  >
-    <FaSignOutAlt />
-    Logout
-  </button>
+  onClick={() => setShowLogoutModal(true)}
+  className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-lg transition"
+>
+  <FaSignOutAlt />
+  Logout
+</button>
 </div>
         </div>
 
@@ -348,6 +371,36 @@ toast.success("Expense deleted!");
             darkMode={darkMode}
           />
         ))}
+
+        {showLogoutModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-2xl w-80">
+      <h2 className="text-xl font-bold mb-3">
+        🚪 Logout
+      </h2>
+
+      <p className="text-gray-600 dark:text-gray-300 mb-6">
+        Are you sure you want to sign out?
+      </p>
+
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={() => setShowLogoutModal(false)}
+          className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-slate-700 dark:hover:bg-slate-600"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={logout}
+          className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );

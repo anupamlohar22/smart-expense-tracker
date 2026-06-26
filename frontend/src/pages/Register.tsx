@@ -27,6 +27,13 @@ function Register({
   const [loading, setLoading] =
     useState(false);
 
+  const passwordStrength =
+  password.length < 6
+    ? "Weak"
+    : password.length < 10
+    ? "Medium"
+    : "Strong";
+
   const handleRegister = async () => {
     if (!name || !email || !password) {
       toast.error("Please fill all fields");
@@ -157,6 +164,24 @@ function Register({
                 : "Show"}
             </button>
           </div>
+
+          <p
+  className={`text-sm ${
+    passwordStrength === "Strong"
+      ? "text-green-600"
+      : passwordStrength === "Medium"
+      ? "text-yellow-600"
+      : "text-red-600"
+  }`}
+>
+{
+  passwordStrength === "Weak"
+    ? "🔴 Password Strength: Weak"
+    : passwordStrength === "Medium"
+    ? "🟡 Password Strength: Medium"
+    : "🟢 Password Strength: Strong"
+}
+</p>
 
           <button
             onClick={handleRegister}
