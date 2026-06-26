@@ -1,6 +1,7 @@
+import { FaFileCsv } from "react-icons/fa";
+
 import { jwtDecode } from "jwt-decode";
 import { useMemo } from "react";
-
 
 import { FaMoon, FaSun } from "react-icons/fa";
 import toast from "react-hot-toast";
@@ -28,9 +29,9 @@ function Dashboard() {
   const [darkMode, setDarkMode] = useState(
   localStorage.getItem("theme") === "dark"
 );
-type TokenData = {
+  type TokenData = {
   sub: string;
-  name: string;
+  name?: string;
 };
 
 const userName = useMemo(() => {
@@ -40,11 +41,12 @@ const userName = useMemo(() => {
 
   try {
     const decoded = jwtDecode<TokenData>(token);
-    return decoded.name;
+    return decoded.name || "User";
   } catch {
     return "User";
   }
 }, []);
+
   useEffect(() => {
     fetchExpenses();
   }, []);
@@ -203,6 +205,36 @@ toast.success("Expense deleted!");
   window.location.reload();
 };
 
+const exportToCSV = () => {
+  const headers = ["Title", "Amount", "Category", "Date"];
+
+  const rows = expenses.map((expense) => [
+    expense.title,
+    expense.amount,
+    expense.category,
+    new Date(expense.created_at).toLocaleDateString(),
+  ]);
+
+  const csvContent = [
+    headers.join(","),
+    ...rows.map((row) => row.join(",")),
+  ].join("\n");
+
+  const blob = new Blob([csvContent], {
+    type: "text/csv;charset=utf-8;",
+  });
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "expenses.csv";
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
   const toggleDarkMode = () => {
   const newMode = !darkMode;
 
@@ -232,13 +264,23 @@ toast.success("Expense deleted!");
 
             <div>
 <div>
+<div>
   <h1
     className={`text-4xl font-bold ${
       darkMode ? "text-white" : "text-slate-800"
     }`}
   >
-    Welcome back, {userName}!
+  Welcome back, {userName}!
   </h1>
+
+  <p
+    className={`mt-2 ${
+      darkMode ? "text-slate-300" : "text-slate-600"
+    }`}
+  >
+  
+  </p>
+</div>
 
   <p
     className={`mt-2 ${
@@ -265,6 +307,14 @@ toast.success("Expense deleted!");
   >
     {darkMode ? <FaSun /> : <FaMoon />}
   </button>
+
+  <button
+  onClick={exportToCSV}
+  className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-lg transition"
+>
+  <FaFileCsv />
+  Export CSV
+</button>
 
   <button
   onClick={() => setShowLogoutModal(true)}
