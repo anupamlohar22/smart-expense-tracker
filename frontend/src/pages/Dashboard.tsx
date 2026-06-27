@@ -42,6 +42,30 @@ const [savingsGoal, setSavingsGoal] = useState(() => {
   return savedGoal ? Number(savedGoal) : 20000;
 });
 
+const [recurringExpenses, setRecurringExpenses] = useState(() => {
+  const savedRecurring = localStorage.getItem(
+    "recurringExpenses"
+  );
+  return savedRecurring
+    ? JSON.parse(savedRecurring)
+    : [
+        {
+          id: 1,
+          title: "Netflix",
+          amount: 649,
+        },
+        {
+          id: 2,
+          title: "Internet",
+          amount: 799,
+        },
+      ];
+});
+
+const [newRecurringTitle, setNewRecurringTitle] = useState("");
+
+const [newRecurringAmount, setNewRecurringAmount] = useState("");
+
 const formRef = useRef<HTMLDivElement>(null);
 
 const [darkMode, setDarkMode] = useState(
@@ -68,6 +92,14 @@ useEffect(() => {
     savingsGoal.toString()
   );
 }, [savingsGoal]);
+
+useEffect(() => {
+  localStorage.setItem(
+    "recurringExpenses",
+    JSON.stringify(recurringExpenses)
+  );
+}, [recurringExpenses]);
+
 
   type TokenData = {
   sub: string;
@@ -274,6 +306,11 @@ const financialHealthScore = Math.max(
   )
 );
 
+const totalRecurringExpenses = recurringExpenses.reduce(
+  (sum, expense) => sum + expense.amount,
+  0
+);
+
   const totalTransactions = expenses.length;
 
   const filteredExpenses = expenses.filter(
@@ -331,6 +368,36 @@ const exportToCSV = () => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+const addRecurringExpense = () => {
+  if (
+    !newRecurringTitle.trim() ||
+    !newRecurringAmount
+  ) {
+    return;
+  }
+
+  const newExpense = {
+    id: Date.now(),
+    title: newRecurringTitle,
+    amount: Number(newRecurringAmount),
+  };
+
+  setRecurringExpenses([
+    ...recurringExpenses,
+    newExpense,
+  ]);
+
+  setNewRecurringTitle("");
+  setNewRecurringAmount("");
+};
+
+const deleteRecurringExpense = (id: number) => {
+  setRecurringExpenses(
+    recurringExpenses.filter(
+      (expense) => expense.id !== id
+    )
+  );
 };
 
   const toggleDarkMode = () => {
@@ -595,7 +662,84 @@ const exportToCSV = () => {
 </div>
 
 </div>
+<div
+  className={`mb-6 p-6 rounded-2xl shadow ${
+    darkMode
+      ? "bg-slate-800 text-white"
+      : "bg-white text-slate-800"
+  }`}
+>
+  <h2 className="text-2xl font-bold mb-4">
+    🔁 Recurring Expenses
+  </h2>
 
+  <div className="grid md:grid-cols-3 gap-4 mb-4">
+  <input
+    type="text"
+    placeholder="Subscription name"
+    value={newRecurringTitle}
+    onChange={(e) =>
+      setNewRecurringTitle(e.target.value)
+    }
+    className={`rounded-xl px-4 py-3 border ${
+      darkMode
+        ? "bg-slate-700 border-slate-600 text-white"
+        : "bg-white border-slate-300"
+    }`}
+  />
+
+  <input
+    type="number"
+    placeholder="Monthly amount"
+    value={newRecurringAmount}
+    onChange={(e) =>
+      setNewRecurringAmount(e.target.value)
+    }
+    className={`rounded-xl px-4 py-3 border ${
+      darkMode
+        ? "bg-slate-700 border-slate-600 text-white"
+        : "bg-white border-slate-300"
+    }`}
+  />
+
+  <button
+    onClick={addRecurringExpense}
+    className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-3 transition"
+  >
+    Add Subscription
+  </button>
+</div>
+
+  <div className="space-y-3">
+    {recurringExpenses.map((expense: any) => (
+  <div
+    key={expense.id}
+    className="flex justify-between items-center"
+  >
+    <div>
+      <span>{expense.title}</span>
+
+      <span className="ml-4 font-semibold">
+        ₹ {expense.amount}/month
+      </span>
+    </div>
+
+    <button
+      onClick={() =>
+        deleteRecurringExpense(expense.id)
+      }
+      className="text-red-500 hover:text-red-700 transition"
+    >
+      ✕
+    </button>
+  </div>
+))}
+  </div>
+
+  <div className="border-t mt-4 pt-4 font-bold text-lg">
+    Total Monthly Subscriptions: ₹ {totalRecurringExpenses}
+  </div>
+</div>
 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-6 mb-6"></div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-6">
