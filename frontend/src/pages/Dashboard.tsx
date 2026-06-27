@@ -24,13 +24,27 @@ function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState("All");
- const [monthlyBudget, setMonthlyBudget] = useState(() => {
+const [monthlyBudget, setMonthlyBudget] = useState(() => {
   const savedBudget = localStorage.getItem("monthlyBudget");
 
   return savedBudget ? Number(savedBudget) : 10000;
 });
-  const formRef = useRef<HTMLDivElement>(null);
-  const [darkMode, setDarkMode] = useState(
+
+const [monthlyIncome, setMonthlyIncome] = useState(() => {
+  const savedIncome = localStorage.getItem("monthlyIncome");
+
+  return savedIncome ? Number(savedIncome) : 50000;
+});
+
+const [savingsGoal, setSavingsGoal] = useState(() => {
+  const savedGoal = localStorage.getItem("savingsGoal");
+
+  return savedGoal ? Number(savedGoal) : 20000;
+});
+
+const formRef = useRef<HTMLDivElement>(null);
+
+const [darkMode, setDarkMode] = useState(
   localStorage.getItem("theme") === "dark"
 );
 
@@ -40,6 +54,21 @@ function Dashboard() {
     monthlyBudget.toString()
   );
 }, [monthlyBudget]);
+
+useEffect(() => {
+  localStorage.setItem(
+    "monthlyIncome",
+    monthlyIncome.toString()
+  );
+}, [monthlyIncome]);
+
+useEffect(() => {
+  localStorage.setItem(
+    "savingsGoal",
+    savingsGoal.toString()
+  );
+}, [savingsGoal]);
+
   type TokenData = {
   sub: string;
   name?: string;
@@ -209,6 +238,42 @@ toast.success("Expense deleted!");
   ? "👍 Good job! You're staying within your budget."
   : "⚠️ Careful! You're close to your budget limit.";
 
+const totalSavings = monthlyIncome - totalExpenses;
+
+const savingsRate =
+  monthlyIncome > 0
+    ? (totalSavings / monthlyIncome) * 100
+    : 0;
+
+const savingsMessage =
+  savingsRate >= 50
+    ? "🚀 Outstanding saver!"
+    : savingsRate >= 20
+    ? "👍 Healthy savings habit"
+    : savingsRate >= 0
+    ? "⚠️ Try to save more"
+    : "🚨 Spending exceeds income";
+
+  const goalProgress = Math.min(
+  (totalSavings / savingsGoal) * 100,
+  100
+);
+
+  const goalAchieved = totalSavings >= savingsGoal;
+
+  const netWorth = totalSavings;
+
+const financialHealthScore = Math.max(
+  0,
+  Math.min(
+    Math.round(
+      savingsRate * 0.7 +
+      (goalProgress >= 100 ? 30 : goalProgress * 0.3)
+    ),
+    100
+  )
+);
+
   const totalTransactions = expenses.length;
 
   const filteredExpenses = expenses.filter(
@@ -358,7 +423,31 @@ const exportToCSV = () => {
 </button>
 </div>
         </div>
+<div className="grid md:grid-cols-2 gap-6 mb-6">
+<div
+  className={`mb-6 p-4 rounded-2xl shadow ${
+    darkMode
+      ? "bg-slate-800 text-white"
+      : "bg-white text-slate-800"
+  }`}
+>
+  <label className="block mb-2 font-semibold">
+    Monthly Income (₹)
+  </label>
 
+  <input
+    type="number"
+    value={monthlyIncome}
+    onChange={(e) =>
+      setMonthlyIncome(Number(e.target.value))
+    }
+    className={`w-full rounded-xl px-4 py-3 border ${
+      darkMode
+        ? "bg-slate-700 border-slate-600 text-white"
+        : "bg-white border-slate-300"
+    }`}
+  />
+</div>
         <div
   className={`mb-6 p-4 rounded-2xl shadow ${
     darkMode
@@ -384,6 +473,32 @@ const exportToCSV = () => {
   />
 </div>
 
+<div
+  className={`p-4 rounded-2xl shadow ${
+    darkMode
+      ? "bg-slate-800 text-white"
+      : "bg-white text-slate-800"
+  }`}
+>
+  <label className="block mb-2 font-semibold">
+    Savings Goal (₹)
+  </label>
+
+  <input
+    type="number"
+    value={savingsGoal}
+    onChange={(e) =>
+      setSavingsGoal(Number(e.target.value))
+    }
+    className={`w-full rounded-xl px-4 py-3 border ${
+      darkMode
+        ? "bg-slate-700 border-slate-600 text-white"
+        : "bg-white border-slate-300"
+    }`}
+  />
+</div>
+
+</div>
 
 <div className="mb-6">
   <div
@@ -432,9 +547,56 @@ const exportToCSV = () => {
   {budgetMessage}
 </p>
 
+<div className="mt-6">
+  <h3 className="font-semibold mb-2">
+    🎯 Savings Goal Progress
+  </h3>
+
+  <div
+    className={`w-full h-4 rounded-full overflow-hidden ${
+      darkMode ? "bg-slate-700" : "bg-slate-200"
+    }`}
+  >
+    <div
+      className={`h-full transition-all duration-500 ${
+        goalAchieved
+          ? "bg-emerald-500"
+          : "bg-blue-500"
+      }`}
+      style={{
+        width: `${goalProgress}%`,
+      }}
+    />
+  </div>
+
+  <p
+    className={`mt-2 text-sm ${
+      darkMode ? "text-slate-300" : "text-slate-600"
+    }`}
+  >
+    ₹ {Math.abs(totalSavings)} saved of ₹ {savingsGoal}
+    ({goalProgress.toFixed(0)}%)
+  </p>
+
+  <p
+    className={`mt-1 font-semibold ${
+      goalAchieved
+        ? "text-emerald-500"
+        : "text-amber-500"
+    }`}
+  >
+    {goalAchieved
+      ? "🎉 Savings goal achieved!"
+      : `₹ ${Math.max(
+          savingsGoal - totalSavings,
+          0
+        )} more to reach your goal`}
+  </p>
 </div>
 
-<div className="grid md:grid-cols-3 gap-6 mb-6"></div>
+</div>
+
+<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-6 mb-6"></div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-6">
 
@@ -481,6 +643,78 @@ const exportToCSV = () => {
         : "✅ Within budget"}
     </p>
   </div>
+<div
+  className={`rounded-2xl shadow-lg p-6 text-white ${
+    totalSavings >= 0
+      ? "bg-gradient-to-r from-emerald-600 to-emerald-800"
+      : "bg-gradient-to-r from-red-600 to-red-800"
+  }`}
+>
+  <h2 className="text-xl font-medium opacity-90">
+    Total Savings
+  </h2>
+
+  <p className="text-5xl font-bold mt-3">
+    ₹ {Math.abs(totalSavings)}
+  </p>
+
+<p className="mt-2">
+  {savingsRate.toFixed(0)}% savings rate
+</p>
+
+<p className="mt-1 text-sm font-medium opacity-90">
+  {savingsMessage}
+</p>
+</div>
+
+<div
+  className={`rounded-2xl shadow-lg p-6 text-white ${
+    netWorth >= 0
+      ? "bg-gradient-to-r from-cyan-600 to-cyan-800"
+      : "bg-gradient-to-r from-red-600 to-red-800"
+  }`}
+>
+  <h2 className="text-xl font-medium opacity-90">
+    Net Worth
+  </h2>
+
+  <p className="text-5xl font-bold mt-3">
+    ₹ {Math.abs(netWorth)}
+  </p>
+
+<p className="mt-2">
+  {netWorth >= 0
+    ? `📈 ${savingsRate.toFixed(0)}% savings efficiency`
+    : "⚠️ Negative net worth"}
+</p>
+</div>
+
+<div
+  className={`rounded-2xl shadow-lg p-6 text-white ${
+    financialHealthScore >= 80
+      ? "bg-gradient-to-r from-green-600 to-green-800"
+      : financialHealthScore >= 50
+      ? "bg-gradient-to-r from-yellow-500 to-yellow-700"
+      : "bg-gradient-to-r from-red-600 to-red-800"
+  }`}
+>
+  <h2 className="text-xl font-medium opacity-90">
+    Financial Health
+  </h2>
+
+  <p className="text-5xl font-bold mt-3">
+    {financialHealthScore}/100
+  </p>
+
+  <p className="mt-2">
+    {financialHealthScore >= 80
+      ? "🟢 Excellent"
+      : financialHealthScore >= 50
+      ? "🟡 Good"
+      : "🔴 Needs Improvement"}
+  </p>
+</div>
+
 
 </div>
         </div>
