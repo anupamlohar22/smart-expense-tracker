@@ -307,10 +307,9 @@ const financialHealthScore = Math.max(
 );
 
 const totalRecurringExpenses = recurringExpenses.reduce(
-  (sum, expense) => sum + expense.amount,
+  (sum: number, expense: any) => sum + expense.amount,
   0
 );
-
   const totalTransactions = expenses.length;
 
   const filteredExpenses = expenses.filter(
@@ -395,7 +394,7 @@ const addRecurringExpense = () => {
 const deleteRecurringExpense = (id: number) => {
   setRecurringExpenses(
     recurringExpenses.filter(
-      (expense) => expense.id !== id
+      (expense: any) => expense.id !== id
     )
   );
 };
