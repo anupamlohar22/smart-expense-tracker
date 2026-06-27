@@ -189,6 +189,26 @@ toast.success("Expense deleted!");
   const remainingBudget = monthlyBudget - totalExpenses;
   const isOverBudget = remainingBudget < 0;
 
+  const budgetPercentage = Math.min(
+  (totalExpenses / monthlyBudget) * 100,
+  100
+);
+  
+  const amountOverBudget = Math.max(
+  totalExpenses - monthlyBudget,
+  0
+);
+  const remainingPercentage =
+  (remainingBudget / monthlyBudget) * 100;
+
+  const budgetMessage = isOverBudget
+  ? "🚨 Budget exceeded! Time to cut back."
+  : remainingPercentage > 50
+  ? "🏆 Excellent! More than 50% of your budget remains."
+  : remainingPercentage > 20
+  ? "👍 Good job! You're staying within your budget."
+  : "⚠️ Careful! You're close to your budget limit.";
+
   const totalTransactions = expenses.length;
 
   const filteredExpenses = expenses.filter(
@@ -363,6 +383,58 @@ const exportToCSV = () => {
     }`}
   />
 </div>
+
+
+<div className="mb-6">
+  <div
+    className={`w-full h-4 rounded-full overflow-hidden ${
+      darkMode ? "bg-slate-700" : "bg-slate-200"
+    }`}
+  >
+    <div
+      className={`h-full transition-all duration-500 ${
+        isOverBudget ? "bg-red-500" : "bg-green-500"
+      }`}
+      style={{
+        width: `${budgetPercentage}%`,
+      }}
+    />
+  </div>
+
+  <p
+  className={`mt-2 text-sm ${
+    darkMode ? "text-slate-300" : "text-slate-600"
+  }`}
+>
+  ₹ {totalExpenses} spent of ₹ {monthlyBudget} (
+  {budgetPercentage.toFixed(0)}%)
+</p>
+
+{isOverBudget ? (
+  <p className="mt-1 text-sm text-red-500 font-semibold">
+    ⚠️ Over budget by ₹ {amountOverBudget}
+  </p>
+) : (
+  <p className="mt-1 text-sm text-green-500 font-semibold">
+    ✅ Within budget
+  </p>
+)}
+
+<p
+  className={`mt-3 text-center font-semibold ${
+    isOverBudget
+      ? "text-red-500"
+      : darkMode
+      ? "text-yellow-300"
+      : "text-indigo-700"
+  }`}
+>
+  {budgetMessage}
+</p>
+
+</div>
+
+<div className="grid md:grid-cols-3 gap-6 mb-6"></div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-6">
 
